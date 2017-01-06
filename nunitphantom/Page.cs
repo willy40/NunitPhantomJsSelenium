@@ -1,24 +1,31 @@
-﻿using NUnit.Framework;
-using OpenQA.Selenium;
-using OpenQA.Selenium.PhantomJS;
-using OpenQA.Selenium.Support.UI;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace nunitphantom
+﻿namespace nunitphantom
 {
-    [TestFixture]
+    #region Usings
+
+    using NUnit.Framework;
+    using OpenQA.Selenium;
+    using OpenQA.Selenium.PhantomJS;
+    using OpenQA.Selenium.Support.UI;
+    using System;
+    using System.Drawing.Imaging;
+    using System.Text;
+
+    #endregion
+
     public class Page
     {
+        #region Protected Properties
+        protected string Url { get; set; }
+
+        #endregion
+
+        #region Private Properties
+
         private static int WaitTime = 5;
-        protected PhantomJSDriver driver;
+        private PhantomJSDriver driver;
+        #endregion
 
-        public string Url { get; set; }
-
+        #region Public Methods
         [OneTimeSetUp]
         public void ClassSetup()
         {
@@ -27,7 +34,7 @@ namespace nunitphantom
         }
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
             if (string.IsNullOrEmpty(Url))
                 throw new Exception("URL Cannot be empty");
@@ -42,6 +49,9 @@ namespace nunitphantom
             driver.Quit();
         }
 
+        #endregion
+
+        #region Protected Methods
         protected string CombineCssSelector(string _base, string _selector)
         {
             StringBuilder builder = new StringBuilder();
@@ -55,51 +65,52 @@ namespace nunitphantom
             sh.SaveAsFile(@"C:\Temp.jpg", ImageFormat.Png);
         }
 
-        public void ClickById(string elemId)
+        protected void ClickById(string elemId)
         {
             var domElement = FindElementById(elemId);
             domElement.Click();
         }
 
-        public void ClickByCss(string elemCss)
+        protected void ClickByCss(string elemCss)
         {
             var domElement = getWait().Until(driver => driver.FindElement(By.CssSelector(elemCss)));
             domElement.Click();
         }
 
-        public void ClickByXpath(string elemXPath)
+        protected void ClickByXpath(string elemXPath)
         {
             var domElement = this.FindElementByXpath(elemXPath);
             domElement.Click();
         }
-        
-        public IWebElement FindElementByXpath(string XPath)
+
+        protected IWebElement FindElementByXpath(string XPath)
         {
             return getWait().Until(driver => driver.FindElement(By.XPath(XPath)));
         }
 
-        public IWebElement FindElementById(string elemId)
+        protected IWebElement FindElementById(string elemId)
         {
             return getWait().Until(driver => driver.FindElement(By.Id(elemId)));
         }
 
-        public IWebElement FindElementByCssSelector(string selector)
+        protected IWebElement FindElementByCssSelector(string selector)
         {
             return getWait().Until(driver => driver.FindElement(By.CssSelector(selector)));
         }
 
-        public void ChooseValueInSelectById(string elemId, string value)
+        protected void ChooseValueInSelectById(string elemId, string value)
         {
             var select = new SelectElement(FindElementById(elemId));
             select.SelectByValue(value);
         }
 
-        private WebDriverWait getWait()
+        protected WebDriverWait getWait()
         {
             return new WebDriverWait(new SystemClock(), 
                 driver, 
                 TimeSpan.FromSeconds(WaitTime), 
                 TimeSpan.FromMilliseconds(500) );
         }
+        #endregion
     }
 }

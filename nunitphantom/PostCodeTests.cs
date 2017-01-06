@@ -1,15 +1,12 @@
-﻿using NUnit.Framework;
-using OpenQA.Selenium.Support.UI;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace nunitphantom
+﻿namespace nunitphantom
 {
+    #region Usings
+
+    using NUnit.Framework;
+    using System.Threading;
+
+    #endregion
+
     [TestFixture]
     [Category("PostCodeValidation")]
     public class PostCodeTests : Page
@@ -30,11 +27,15 @@ namespace nunitphantom
         private string multipleMpansPostCodeLowerCase = "ky7 6lq";
         #endregion
 
+        #region Constructor
         public PostCodeTests()
         {
             this.Url = "http://business.ukpower.co.uk/";
         }
 
+        #endregion
+
+        #region Tests
         [Test]
         public void Entering_PostCode_Lower_Should_Replace_To_Upper()
         {
@@ -86,8 +87,11 @@ namespace nunitphantom
 
             Assert.AreEqual(false, FindElementByCssSelector(multipleMpansAlert).Displayed);
         }
+        #endregion
 
-        private void EnterPostcode(string _postCode, int sleep=2000)
+        #region Private Methods
+
+        private void EnterPostcode(string _postCode, int sleep=1000)
         {
             var postcode = FindElementById(postCodeFieldId);
             postcode.SendKeys(_postCode);
@@ -95,5 +99,6 @@ namespace nunitphantom
             ClickById(compareButton);
             Thread.Sleep(sleep);
         }
+        #endregion
     }
 }
