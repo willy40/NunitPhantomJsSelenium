@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace nunitphantom
 {
+    [TestFixture]
     [Category("PostCodeValidation")]
     public class PostCodeTests : Page
     {
@@ -40,7 +41,7 @@ namespace nunitphantom
             EnterPostcode(multipleMpansPostCodeLowerCase);
             var upperCasePostCode = FindElementById(postCodeFieldId).GetAttribute("value");
 
-            Assert.AreEqual("KY7 6LQ", upperCasePostCode);
+            Assert.AreEqual(multipleMpansPostCodeLowerCase.ToUpper(), upperCasePostCode);
         }
 
         [Test]
