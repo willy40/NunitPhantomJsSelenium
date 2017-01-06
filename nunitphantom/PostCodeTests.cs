@@ -14,12 +14,10 @@ namespace nunitphantom
     public class PostCodeTests : Page
     {
         #region Private
-        private string postCodeGroup = ".your-postcode";
-        private string postCodeField = "postcode-field";
+        private string postCodeFieldId = "postcode-field";
         private string compareButton = "compare-button";
-        private string gasButton = "//*[@id=\"splash\"]/div/div/div/div/div/div[1]/div[2]/div/div[2]/label";
         private string postCodeError = "//*[@id=\"splash\"]/div/div/div/div/div/div[2]/div/div/div[2]/ul/li";
-        private string mpanAlertSelector = ".q-mpan .alert.alert-info";
+        private string multipleMpansAlert = ".q-mpan .alert.alert-info";
 
         private string multipleMpansAddressValue = "2041496013d57b4d0828f0603dd6b9919670e8c3";
         private string firstAddressInMultipleMpansXpath = "//*[@id=\"multiple_meters\"]/div[1]/label/input";
@@ -27,8 +25,8 @@ namespace nunitphantom
         private string addressFieldId = "address-field";
 
         private string wrongPostCode = "123";
-        private string correctPostCode = "oX169BX";
-        private string multipleMpansPostCode = "ky7 6lq";
+        private string correctPostCodeUpperCase = "OX169BX";
+        private string multipleMpansPostCodeLowerCase = "ky7 6lq";
         #endregion
 
         public PostCodeTests()
@@ -39,9 +37,8 @@ namespace nunitphantom
         [Test]
         public void Entering_PostCode_Lower_Should_Replace_To_Upper()
         {
-            EnterPostcode(multipleMpansPostCode);
-            var elem = FindElementById(postCodeField);
-            var upperCasePostCode = elem.GetAttribute("value");
+            EnterPostcode(multipleMpansPostCodeLowerCase);
+            var upperCasePostCode = FindElementById(postCodeFieldId).GetAttribute("value");
 
             Assert.AreEqual("KY7 6LQ", upperCasePostCode);
         }
@@ -57,7 +54,7 @@ namespace nunitphantom
         [Test]
         public void Correct_PostCode_Error_Invisible()
         {
-            EnterPostcode(correctPostCode);
+            EnterPostcode(correctPostCodeUpperCase);
 
             Assert.AreEqual(false, FindElementByXpath(postCodeError).Displayed);
         }
@@ -65,7 +62,7 @@ namespace nunitphantom
         [Test]
         public void Correct_PostCode_Energy_Banner_Visible()
         {
-            EnterPostcode(correctPostCode);
+            EnterPostcode(correctPostCodeUpperCase);
 
             Assert.AreEqual(true, FindElementById(formContainerId).Displayed);
         }
@@ -73,30 +70,29 @@ namespace nunitphantom
         [Test]
         public void Selecting_Multiple_Mpans_Noticed_Visible()
         {
-            EnterPostcode(multipleMpansPostCode);
+            EnterPostcode(multipleMpansPostCodeLowerCase);
             ChooseValueInSelectById(addressFieldId, multipleMpansAddressValue);
 
-            Assert.AreEqual(true, FindElementByCssSelector(mpanAlertSelector).Displayed);
+            Assert.AreEqual(true, FindElementByCssSelector(multipleMpansAlert).Displayed);
         }
 
         [Test]
         public void Selecting_First_Mpan_In_Multiple_Mpans_Noticed_InVisible()
         {
-            EnterPostcode(multipleMpansPostCode);
+            EnterPostcode(multipleMpansPostCodeLowerCase);
             ChooseValueInSelectById(addressFieldId, multipleMpansAddressValue);
             ClickByXpath(firstAddressInMultipleMpansXpath);
 
-            Assert.AreEqual(false, FindElementByCssSelector(mpanAlertSelector).Displayed);
+            Assert.AreEqual(false, FindElementByCssSelector(multipleMpansAlert).Displayed);
         }
 
         private void EnterPostcode(string _postCode, int sleep=2000)
         {
-            var postcode = FindElementById(postCodeField);
+            var postcode = FindElementById(postCodeFieldId);
             postcode.SendKeys(_postCode);
 
             ClickById(compareButton);
             Thread.Sleep(sleep);
-
         }
     }
 }
