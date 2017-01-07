@@ -91,7 +91,7 @@
 
         #region Private Methods
 
-        private void EnterPostcode(string _postCode, int sleep=1000)
+        private void EnterPostcode(string _postCode, int sleep=2000)
         {
             var postcode = FindElementById(postCodeFieldId);
             postcode.SendKeys(_postCode);
