@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Run">
+	<UsingTask AssemblyFile="$(MSBuildProjectDirectory)\packages\MSBuild.Extension.Pack.1.9.0\tools\net40\MSBuild.ExtensionPack.dll" TaskName="MSBuild.ExtensionPack.CodeQuality.Nunit3"/>
+	<UsingTask AssemblyFile="$(MSBuildProjectDirectory)\packages\MSBuild.Extension.Pack.1.9.0\tools\net40\MSBuild.ExtensionPack.StyleCop.dll" TaskName="MSBuild.ExtensionPack.CodeQuality.StyleCop"/>
+
+	<PropertyGroup>
+		<TPath>$(MSBuildProjectDirectory)\packages\MSBuild.Extension.Pack.1.9.0\build\net40\MSBuild.Extension.Pack.targets</TPath>
+		<TPath Condition="Exists('$(MSBuildProjectDirectory)\packages\MSBuild.Extension.Pack.1.9.0\build\net40\MSBuild.Extension.Pack.targets')">$(MSBuildProjectDirectory)\packages\MSBuild.Extension.Pack.1.9.0\build\net40\MSBuild.Extension.Pack.targets</TPath>
+ 	</PropertyGroup>
+	
+	<!-- <Import Project="$(TPath)"/> -->
+	
+	<PropertyGroup>
+		<OutDir>$(MSBuildStartupDirectory)\OutDir</OutDir>
+    </PropertyGroup>
+	
+	<PropertyGroup>
+		<Configuration>Release</Configuration>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<SolutionProperties>
+		  OutDir=$(OutDir);
+		  Platform=Any CPU;
+		  Configuration=$(Configuration)
+		</SolutionProperties>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<NunitRunnerPath>$(MSBuildProjectDirectory)\packages\NUnit.ConsoleRunner.3.6.1\tools</NunitRunnerPath>
+    </PropertyGroup>
+	
+	<PropertyGroup>
+		<StyleCopPath>$(MSBuildProjectDirectory)\packages\packages\StyleCop.4.7.55\lib\net35</StyleCopPath>
+    </PropertyGroup>
+	
+	<PropertyGroup>
+		<StyleCopDir>$(MSBuildProjectDirectory)\packages\packages\StyleCop.4.7.55\lib\net35</StyleCopDir>
+	</PropertyGroup>
+
+	 <PropertyGroup>
+    <NUnitResultsFile>$(OutDir)\nunit-result.xml</NUnitResultsFile>
+  </PropertyGroup>
+  
+	<PropertyGroup>
+		<TestAssembly>$(OutDir)\nunitphantom.dll</TestAssembly>
+	</PropertyGroup>
+	
+	<ItemGroup>
+        <Solution Include="nunitphantom.sln">
+            <Properties>
+                $(SolutionProperties)
+            </Properties>
+        </Solution>
+    </ItemGroup>
+    
+	<ItemGroup>
+		<!--- Need to add to the dependencies because MSBuild.ExtensionPack.CodeQuality.StyleCop.dll references StyleCop -->
+		<DependencyDirectories Include="$(StyleCopPath)" />
+	</ItemGroup>
+	
+	<Target Name="Run">
+		<CallTarget Targets="BuildSolution" />
+		<CallTarget Targets="RunStyleCop" />
+		<CallTarget Targets="RunTests" />
+	</Target>
+
+	<Target Name="BuildSolution">
+		<MSBuild Projects="@(Solution)"/>
+	</Target>
+  
+	<Target Name="RunTests">
+		<MSBuild.ExtensionPack.CodeQuality.NUnit3 
+			Assemblies="$(TestAssembly)" 
+			ToolPath="$(NunitRunnerPath)" 
+			Configuration="$(Configuration)" 
+			OutputXmlFile="$(NUnitResultsFile)"
+			WorkerThreads="1">
+			
+			<Output TaskParameter="Total" PropertyName="ResultTotal"/>
+			<Output TaskParameter="NotRun" PropertyName="ResultNotRun"/>
+			<Output TaskParameter="Failures" PropertyName="ResultFailures"/>
+			<Output TaskParameter="Errors" PropertyName="ResultErrors"/>
+			<Output TaskParameter="Inconclusive" PropertyName="ResultInconclusive"/>
+			<Output TaskParameter="Ignored" PropertyName="ResultIgnored"/>
+			<Output TaskParameter="Skipped" PropertyName="ResultSkipped"/>
+			<Output TaskParameter="Invalid" PropertyName="ResultInvalid"/>
+		</MSBuild.ExtensionPack.CodeQuality.NUnit3>
+
+		<Message Text="ResultTotal: $(ResultTotal)"/>
+		<Message Text="ResultNotRun: $(ResultNotRun)"/>
+		<Message Text="ResultFailures: $(ResultFailures)"/>
+		<Message Text="ResultErrors: $(ResultErrors)"/>
+		<Message Text="ResultInconclusive: $(ResultInconclusive)"/>
+		<Message Text="ResultIgnored: $(ResultIgnored)"/>
+		<Message Text="ResultSkipped: $(ResultSkipped)"/>
+		<Message Text="ResultInvalid: $(ResultInvalid)"/>
+	</Target>
+ 
+	<Target Name="RunStyleCop">
+	
+		<!-- Create a collection of files to scan -->
+		<CreateItem Include="$(MSBuildStartupDirectory)\nunitphantom\*.cs">
+			<Output TaskParameter="Include" ItemName="StyleCopFiles"/>
+		</CreateItem>
+		
+		<!-- Run the StyleCop MSBuild task -->
+		<MSBuild.ExtensionPack.CodeQuality.StyleCop
+			TaskAction="Scan" 
+			SourceFiles="@(StyleCopFiles)" 
+			ShowOutput="true" 
+			ForceFullAnalysis="true" 
+			CacheResults="false" 
+			logFile="$(MSBuildStartupDirectory)\StyleCopLog.txt" 
+			SettingsFile="$(MSBuildStartupDirectory)\Settings.StyleCop">
+
+			<Output TaskParameter="Succeeded" PropertyName="AllPassed"/>
+		  <Output TaskParameter="ViolationCount" PropertyName="Violations"/>
+		  <Output TaskParameter="FailedFiles" ItemName="Failures"/>
+		</MSBuild.ExtensionPack.CodeQuality.StyleCop>
+		
+		<Message Text="Succeeded: $(AllPassed), Violations: $(Violations)" Importance="high"/>
+		<!-- FailedFile format is:
+			<ItemGroup>
+				<FailedFile Include="filename">
+					<CheckId>SA Rule Number</CheckId>
+					<RuleDescription>Rule Description</RuleDescription>
+					<RuleName>Rule Name</RuleName>
+					<LineNumber>Line the violation appears on</LineNumber>
+					<Message>SA violation message</Message>
+				</FailedFile>
+			</ItemGroup>-->
+		<Message Text="%(Failures.Identity) - Failed on Line %(Failures.LineNumber). %(Failures.CheckId): %(Failures.Message)"/>
+	</Target>
+</Project>
